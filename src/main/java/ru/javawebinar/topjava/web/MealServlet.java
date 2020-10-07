@@ -1,7 +1,7 @@
 package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
-import ru.javawebinar.topjava.dao.StorageInMemory;
+import ru.javawebinar.topjava.dao.MealInMemoryStorage;
 import ru.javawebinar.topjava.dao.Storage;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.MealTo;
@@ -25,7 +25,7 @@ public class MealServlet extends HttpServlet {
 
     @Override
     public void init() {
-        storage = StorageInMemory.getInstance();
+        storage = MealInMemoryStorage.newInstance();
     }
 
     @Override
@@ -70,12 +70,10 @@ public class MealServlet extends HttpServlet {
         String cal = request.getParameter("calories");
         int calories = Integer.parseInt(cal);
         String id = request.getParameter("id");
-        int userId = id == null || id.isEmpty() ? StorageInMemory.getNextId() : Integer.parseInt(id);
+        int userId = id == null || id.isEmpty() ? MealInMemoryStorage.getNextId() : Integer.parseInt(id);
         Meal meal = new Meal(userId, dateTime, description, calories);
         storage.put(meal);
-        List<MealTo> mealTo = filteredByStreams(storage.getAll(), LocalTime.MIN, LocalTime.MAX, 2000);
-        request.setAttribute("mealTo", mealTo);
-        request.getRequestDispatcher("/meals.jsp").forward(request, response);
+        response.sendRedirect("meals");
     }
 
     private int parseId(final HttpServletRequest request) {

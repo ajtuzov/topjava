@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class StorageInMemory implements Storage<Meal> {
+public class MealInMemoryStorage implements Storage<Meal> {
 
     private static AtomicInteger counter;
     private final Map<Integer, Meal> meals = new ConcurrentHashMap<>();
 
-    private StorageInMemory() {
+    private MealInMemoryStorage() {
         meals.put(1, new Meal(1, LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));
         meals.put(2, new Meal(2, LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000));
         meals.put(3, new Meal(3, LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500));
@@ -26,8 +26,8 @@ public class StorageInMemory implements Storage<Meal> {
         counter = new AtomicInteger(8);
     }
 
-    public static Storage<Meal> getInstance() {
-        return new StorageInMemory();
+    public static Storage<Meal> newInstance() {
+        return new MealInMemoryStorage();
     }
 
     public static int getNextId() {
@@ -35,8 +35,10 @@ public class StorageInMemory implements Storage<Meal> {
     }
 
     @Override
-    public Meal put(Meal element) {
-        return meals.put(element.getId(), element);
+    public int put(Meal element) {
+        int id = element.getId();
+        meals.put(id, element);
+        return id;
     }
 
     @Override
