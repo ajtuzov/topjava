@@ -19,6 +19,7 @@
     <th>Calories</th>
     <th colspan="2">Action</th>
     <c:forEach var="meals" items="${mealTo}">
+        <jsp:useBean id="meals" scope="page" type="ru.javawebinar.topjava.model.MealTo"/>
         <tr style="color: ${meals.excess ? 'red' : 'green'}">
             <td><javatime:format value="${meals.dateTime}" pattern="yyyy-MM-dd HH:mm"/></td>
             <td><c:out value="${meals.description}"/></td>

@@ -3,7 +3,7 @@ package ru.javawebinar.topjava.dao;
 import java.util.List;
 
 public interface Storage<E> {
-    int put(E element);
+    E put(E element);
 
     List<E> getAll();
 

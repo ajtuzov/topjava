@@ -70,8 +70,9 @@ public class MealServlet extends HttpServlet {
         String cal = request.getParameter("calories");
         int calories = Integer.parseInt(cal);
         String id = request.getParameter("id");
-        int userId = id == null || id.isEmpty() ? MealInMemoryStorage.getNextId() : Integer.parseInt(id);
-        Meal meal = new Meal(userId, dateTime, description, calories);
+        Integer userId = id == null || id.isEmpty() ? null : Integer.parseInt(id);
+        Meal meal = new Meal(dateTime, description, calories);
+        meal.setId(userId);
         storage.put(meal);
         response.sendRedirect("meals");
     }
