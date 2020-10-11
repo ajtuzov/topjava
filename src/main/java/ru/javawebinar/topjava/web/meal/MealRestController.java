@@ -5,12 +5,17 @@ import org.springframework.stereotype.Controller;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.to.MealTo;
+import ru.javawebinar.topjava.util.MealsUtil;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static java.time.LocalTime.MAX;
 import static java.time.LocalTime.MIN;
 import static org.slf4j.LoggerFactory.getLogger;
+import static ru.javawebinar.topjava.util.DateTimeUtil.isBetweenHalfOpen;
 import static ru.javawebinar.topjava.util.MealsUtil.getFilteredTos;
 import static ru.javawebinar.topjava.util.ValidationUtil.*;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserCaloriesPerDay;
@@ -30,6 +35,13 @@ public class MealRestController {
     public List<MealTo> getAll() {
         log.info("getAll");
         return getFilteredTos(service.getAll(authUserId()), authUserCaloriesPerDay(), MIN, MAX);
+    }
+
+    public List<MealTo> getFiltered(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
+        log.info("get by filter");
+        Predicate<Meal> filterByDate = meal -> isBetweenHalfOpen(meal.getDate(), startDate, endDate);
+        Predicate<Meal> filterByTime = meal -> isBetweenHalfOpen(meal.getTime(), startTime, endTime);
+        return MealsUtil.filterByPredicate(service.getAll(authUserId()), authUserCaloriesPerDay(), filterByDate.and(filterByTime));
     }
 
     public Meal get(int id) {

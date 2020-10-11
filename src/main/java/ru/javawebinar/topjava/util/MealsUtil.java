@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
@@ -30,7 +31,13 @@ public class MealsUtil {
     );
 
     static {
-        meals.forEach(meal -> meal.setUserId(authUserId()));
+        IntStream.rangeClosed(0, meals.size() / 2)
+                .mapToObj(meals::get)
+                .forEach(meal -> meal.setUserId(authUserId()));
+
+        IntStream.range(meals.size() / 2 + 1, meals.size())
+                .mapToObj(meals::get)
+                .forEach(meal -> meal.setUserId(2));
     }
 
     public static List<MealTo> getTos(Collection<Meal> meals, int caloriesPerDay) {
