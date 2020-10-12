@@ -13,32 +13,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
 public class MealsUtil {
     public static final int DEFAULT_CALORIES_PER_DAY = 2000;
 
     public static final List<Meal> meals = Arrays.asList(
-            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
-            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000),
-            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500),
-            new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100),
-            new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000),
-            new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500),
-            new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "User-1: Завтрак", 500, 1),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "User-1: Обед", 1000, 1),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "User-1: Ужин", 500, 1),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 29, 1, 0), "User-1: Ночной жор", 2100, 1),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "User-2: Еда на граничное значение", 100, 2),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "User-2: Завтрак", 1000, 2),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "User-2: Обед", 500, 2),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "User-2: Ужин", 410, 2),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "User-2: Сыр", 600, 2),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "User-2: Вино", 400, 2)
     );
-
-    static {
-        IntStream.rangeClosed(0, meals.size() / 2)
-                .mapToObj(meals::get)
-                .forEach(meal -> meal.setUserId(authUserId()));
-
-        IntStream.range(meals.size() / 2 + 1, meals.size())
-                .mapToObj(meals::get)
-                .forEach(meal -> meal.setUserId(2));
-    }
 
     public static List<MealTo> getTos(Collection<Meal> meals, int caloriesPerDay) {
         return filterByPredicate(meals, caloriesPerDay, meal -> true);

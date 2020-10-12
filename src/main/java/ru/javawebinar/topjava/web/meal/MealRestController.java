@@ -5,19 +5,17 @@ import org.springframework.stereotype.Controller;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.to.MealTo;
-import ru.javawebinar.topjava.util.MealsUtil;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static java.time.LocalTime.MAX;
-import static java.time.LocalTime.MIN;
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.javawebinar.topjava.util.DateTimeUtil.isBetweenHalfOpen;
 import static ru.javawebinar.topjava.util.MealsUtil.getFilteredTos;
-import static ru.javawebinar.topjava.util.ValidationUtil.*;
+import static ru.javawebinar.topjava.util.ValidationUtil.assureIdConsistent;
+import static ru.javawebinar.topjava.util.ValidationUtil.checkNew;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserCaloriesPerDay;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
@@ -34,14 +32,23 @@ public class MealRestController {
 
     public List<MealTo> getAll() {
         log.info("getAll");
-        return getFilteredTos(service.getAll(authUserId()), authUserCaloriesPerDay(), MIN, MAX);
+        return getFilteredTos(service.getAll(authUserId()), authUserCaloriesPerDay(), LocalTime.MIN, LocalTime.MAX);
     }
 
-    public List<MealTo> getFiltered(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
+    public List<MealTo> getFiltered(String startDateParam, String endDateParam, String startTimeParam, String endTimeParam) {
         log.info("get by filter");
+
+        LocalDate startDate = getStartDate(startDateParam);
+        LocalDate endDate = getEndDate(endDateParam);
         Predicate<Meal> filterByDate = meal -> isBetweenHalfOpen(meal.getDate(), startDate, endDate);
+
+        LocalTime startTime = getTime(startTimeParam, LocalTime.MIN);
+        LocalTime endTime = getTime(endTimeParam, LocalTime.MAX);
         Predicate<Meal> filterByTime = meal -> isBetweenHalfOpen(meal.getTime(), startTime, endTime);
-        return MealsUtil.filterByPredicate(service.getAll(authUserId()), authUserCaloriesPerDay(), filterByDate.and(filterByTime));
+
+        List<Meal> resultList = service.getFiltered(authUserId(), filterByDate.and(filterByTime));
+
+        return getFilteredTos(resultList, authUserCaloriesPerDay(), LocalTime.MIN, LocalTime.MAX);
     }
 
     public Meal get(int id) {
@@ -51,9 +58,8 @@ public class MealRestController {
 
     public Meal create(Meal meal) {
         log.info("create {}", meal);
-        meal.setUserId(authUserId());
         checkNew(meal);
-        return service.create(meal);
+        return service.create(meal, authUserId());
     }
 
     public void delete(int id) {
@@ -63,8 +69,19 @@ public class MealRestController {
 
     public void update(Meal meal, int id) {
         log.info("update {} with id={}", meal, id);
-        checkNotFound(meal.getUserId() == authUserId(), "Forbidden");
         assureIdConsistent(meal, id);
-        service.update(meal);
+        service.update(meal, authUserId());
+    }
+
+    private LocalTime getTime(String time, LocalTime defaultValue) {
+        return time.isEmpty() ? defaultValue : LocalTime.parse(time);
+    }
+
+    private LocalDate getStartDate(String date) {
+        return date.isEmpty() ? LocalDate.MIN : LocalDate.parse(date);
+    }
+
+    private LocalDate getEndDate(String date) {
+        return date.isEmpty() ? LocalDate.MAX : LocalDate.parse(date).plusDays(1);
     }
 }

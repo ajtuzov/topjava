@@ -24,6 +24,6 @@ public class UserServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String authUserId = request.getParameter("authUserId");
         setAuthUserId(Integer.parseInt(authUserId));
-        response.sendRedirect("/topjava");
+        response.sendRedirect("meals");
     }
 }
