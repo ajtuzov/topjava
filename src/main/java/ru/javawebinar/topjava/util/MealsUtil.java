@@ -18,7 +18,7 @@ public class MealsUtil {
     public static final int DEFAULT_CALORIES_PER_DAY = 2000;
 
     public static final List<Meal> meals = Arrays.asList(
-            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "User-1: Завтрак", 500, 1),
+            new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "User-1: Завтрак", 501, 1),
             new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "User-1: Обед", 1000, 1),
             new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "User-1: Ужин", 500, 1),
             new Meal(LocalDateTime.of(2020, Month.JANUARY, 29, 1, 0), "User-1: Ночной жор", 2100, 1),

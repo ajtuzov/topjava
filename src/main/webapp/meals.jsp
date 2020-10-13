@@ -39,7 +39,7 @@
             End time:
             <input type="time" name="endTime">
         </label>
-        <button type="submit" name="filter" value="presented">Filter</button>
+        <button type="submit" name="action" value="filter">Filter</button>
     </form>
     <br><br>
     <table border="1" cellpadding="8" cellspacing="0">

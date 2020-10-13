@@ -7,13 +7,13 @@ import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.to.MealTo;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import static ru.javawebinar.topjava.util.DateTimeUtil.isBetweenHalfOpen;
 import static ru.javawebinar.topjava.util.MealsUtil.getFilteredTos;
+import static ru.javawebinar.topjava.util.MealsUtil.getTos;
 import static ru.javawebinar.topjava.util.ValidationUtil.assureIdConsistent;
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNew;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserCaloriesPerDay;
@@ -32,23 +32,17 @@ public class MealRestController {
 
     public List<MealTo> getAll() {
         log.info("getAll");
-        return getFilteredTos(service.getAll(authUserId()), authUserCaloriesPerDay(), LocalTime.MIN, LocalTime.MAX);
+        return getTos(service.getAll(authUserId()), authUserCaloriesPerDay());
     }
 
-    public List<MealTo> getFiltered(String startDateParam, String endDateParam, String startTimeParam, String endTimeParam) {
+    public List<MealTo> getFiltered(LocalDate startDateParam, LocalDate endDateParam, LocalTime startTimeParam, LocalTime endTimeParam) {
         log.info("get by filter");
-
         LocalDate startDate = getStartDate(startDateParam);
         LocalDate endDate = getEndDate(endDateParam);
-        Predicate<Meal> filterByDate = meal -> isBetweenHalfOpen(meal.getDate(), startDate, endDate);
-
-        LocalTime startTime = getTime(startTimeParam, LocalTime.MIN);
-        LocalTime endTime = getTime(endTimeParam, LocalTime.MAX);
-        Predicate<Meal> filterByTime = meal -> isBetweenHalfOpen(meal.getTime(), startTime, endTime);
-
-        List<Meal> resultList = service.getFiltered(authUserId(), filterByDate.and(filterByTime));
-
-        return getFilteredTos(resultList, authUserCaloriesPerDay(), LocalTime.MIN, LocalTime.MAX);
+        LocalTime startTime = getTimeOrDefault(startTimeParam, LocalTime.MIN);
+        LocalTime endTime = getTimeOrDefault(endTimeParam, LocalTime.MAX);
+        List<Meal> resultList = service.getFiltered(startDate, endDate, authUserId());
+        return getFilteredTos(resultList, authUserCaloriesPerDay(), startTime, endTime);
     }
 
     public Meal get(int id) {
@@ -56,7 +50,8 @@ public class MealRestController {
         return service.get(id, authUserId());
     }
 
-    public Meal create(Meal meal) {
+    public Meal create(LocalDateTime dateTime, String description, int calories) {
+        Meal meal = new Meal(dateTime, description, calories);
         log.info("create {}", meal);
         checkNew(meal);
         return service.create(meal, authUserId());
@@ -67,21 +62,25 @@ public class MealRestController {
         service.delete(id, authUserId());
     }
 
-    public void update(Meal meal, int id) {
+    public void update(int id, LocalDateTime dateTime, String description, int calories) {
+        Meal meal = service.get(id, authUserId());
+        meal.setDateTime(dateTime);
+        meal.setDescription(description);
+        meal.setCalories(calories);
         log.info("update {} with id={}", meal, id);
         assureIdConsistent(meal, id);
         service.update(meal, authUserId());
     }
 
-    private LocalTime getTime(String time, LocalTime defaultValue) {
-        return time.isEmpty() ? defaultValue : LocalTime.parse(time);
+    private LocalTime getTimeOrDefault(LocalTime time, LocalTime defaultValue) {
+        return time == null ? defaultValue : time;
     }
 
-    private LocalDate getStartDate(String date) {
-        return date.isEmpty() ? LocalDate.MIN : LocalDate.parse(date);
+    private LocalDate getEndDate(LocalDate date) {
+        return date == null ? LocalDate.MAX : date.plusDays(1);
     }
 
-    private LocalDate getEndDate(String date) {
-        return date.isEmpty() ? LocalDate.MAX : LocalDate.parse(date).plusDays(1);
+    private LocalDate getStartDate(LocalDate date) {
+        return date == null ? LocalDate.MIN : date;
     }
 }
