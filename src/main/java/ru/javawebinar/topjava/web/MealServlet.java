@@ -46,10 +46,13 @@ public class MealServlet extends HttpServlet {
         LocalDateTime dateTime = LocalDateTime.parse(request.getParameter("dateTime"));
         String description = request.getParameter("description");
         int calories = Integer.parseInt(request.getParameter("calories"));
+        Meal meal;
         if (id.isEmpty()) {
-            mealRestController.create(dateTime, description, calories);
+            meal = new Meal(dateTime, description, calories);
+            mealRestController.create(meal);
         } else {
-            mealRestController.update(getId(request), dateTime, description, calories);
+            meal = new Meal(getId(request), dateTime, description, calories);
+            mealRestController.update(meal, meal.getId());
         }
         log.info(id.isEmpty() ? "Create" : "Update");
         response.sendRedirect("meals");

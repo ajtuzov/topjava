@@ -29,7 +29,6 @@ public class MealRestController {
         this.service = service;
     }
 
-
     public List<MealTo> getAll() {
         log.info("getAll");
         return getTos(service.getAll(authUserId()), authUserCaloriesPerDay());
@@ -50,8 +49,7 @@ public class MealRestController {
         return service.get(id, authUserId());
     }
 
-    public Meal create(LocalDateTime dateTime, String description, int calories) {
-        Meal meal = new Meal(dateTime, description, calories);
+    public Meal create(Meal meal) {
         log.info("create {}", meal);
         checkNew(meal);
         return service.create(meal, authUserId());
@@ -62,11 +60,7 @@ public class MealRestController {
         service.delete(id, authUserId());
     }
 
-    public void update(int id, LocalDateTime dateTime, String description, int calories) {
-        Meal meal = service.get(id, authUserId());
-        meal.setDateTime(dateTime);
-        meal.setDescription(description);
-        meal.setCalories(calories);
+    public void update(Meal meal, int id) {
         log.info("update {} with id={}", meal, id);
         assureIdConsistent(meal, id);
         service.update(meal, authUserId());
