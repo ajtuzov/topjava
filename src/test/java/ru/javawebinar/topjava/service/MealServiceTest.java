@@ -16,15 +16,11 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.ADMIN_ID;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
-import static ru.javawebinar.topjava.util.Util.isBetweenHalfOpen;
 
 @ContextConfiguration({
         "classpath:spring/spring-app.xml",
@@ -43,12 +39,12 @@ public class MealServiceTest {
 
     @Test
     public void create() {
-        Meal newMeal = getNew();
-        Meal created = mealService.create(newMeal, USER_ID);
-        Integer id = created.getId();
-        newMeal.setId(id);
-        assertMatch(created, newMeal);
-        assertMatch(mealService.get(id, USER_ID), newMeal);
+        Meal expected = new Meal(newMeal);
+        Meal actual = mealService.create(newMeal, USER_ID);
+        Integer id = actual.getId();
+        expected.setId(id);
+        assertMatch(actual, expected);
+        assertMatch(mealService.get(id, USER_ID), expected);
     }
 
     @Test
@@ -64,7 +60,7 @@ public class MealServiceTest {
 
     @Test
     public void duplicateMealCreate() {
-        Meal meal = new Meal(FIRST_USER_MEAL);
+        Meal meal = new Meal(firstUserMeal);
         meal.setId(null);
         assertThrows(DataAccessException.class, () -> mealService.create(meal, USER_ID));
     }
@@ -72,7 +68,7 @@ public class MealServiceTest {
     @Test
     public void get() {
         Meal actual = mealService.get(USER_MEAL_ID, USER_ID);
-        assertMatch(actual, FIRST_USER_MEAL);
+        assertMatch(actual, firstUserMeal);
     }
 
     @Test
@@ -82,34 +78,45 @@ public class MealServiceTest {
 
     @Test
     public void getBetweenInclusive() {
-        LocalDate startDate = SECOND_ADMIN_MEAL.getDate();
-        LocalDate endDate = FIRST_ADMIN_MEAL.getDate();
+        LocalDate startDate = secondAdminMeal.getDate();
+        LocalDate endDate = firstAdminMeal.getDate();
         List<Meal> actual = mealService.getBetweenInclusive(startDate, endDate, ADMIN_ID);
-        List<Meal> collect = Stream.of(FIRST_ADMIN_MEAL, SECOND_ADMIN_MEAL, THIRD_ADMIN_MEAL)
-                .filter(meal -> isBetweenHalfOpen(meal.getDate(), startDate, endDate.plusDays(1)))
-                .sorted(comparing(Meal::getDateTime).reversed())
-                .collect(toList());
-        assertMatch(actual, collect);
+        List<Meal> expected = Arrays.asList(firstAdminMeal, thirdAdminMeal, secondAdminMeal);
+        assertMatch(actual, expected);
     }
 
     @Test
     public void getAll() {
         List<Meal> actual = mealService.getAll(USER_ID);
-        List<Meal> meals = Arrays.asList(FIRST_USER_MEAL, SECOND_USER_MEAL);
-        meals.sort(comparing(Meal::getDateTime).reversed());
-        MealTestData.assertMatch(actual, meals);
+        List<Meal> expected = Arrays.asList(firstUserMeal, secondUserMeal);
+        MealTestData.assertMatch(actual, expected);
     }
 
     @Test
     public void update() {
-        Meal updated = getUpdated();
-        mealService.update(updated, USER_ID);
-        assertMatch(mealService.get(USER_MEAL_ID, USER_ID), updated);
+        Meal expected = new Meal(getUpdated());
+        mealService.update(getUpdated(), USER_ID);
+        assertMatch(mealService.get(USER_MEAL_ID, USER_ID), expected);
     }
 
     @Test
     public void updateNotFound() {
         Meal updated = getUpdated();
         assertThrows(NotFoundException.class, () -> mealService.update(updated, ADMIN_ID));
+    }
+
+    @Test
+    public void getNotExisting() {
+        assertThrows(NotFoundException.class, () -> mealService.get(NOT_EXIST_MEAL_ID, USER_ID));
+    }
+
+    @Test
+    public void deleteNotExisting() {
+        assertThrows(NotFoundException.class, () -> mealService.delete(NOT_EXIST_MEAL_ID, USER_ID));
+    }
+
+    @Test
+    public void updateNotExisting() {
+        assertThrows(NotFoundException.class, () -> mealService.update(notExist, USER_ID));
     }
 }
