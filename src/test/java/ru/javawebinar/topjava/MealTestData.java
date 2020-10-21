@@ -5,7 +5,6 @@ import ru.javawebinar.topjava.model.Meal;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.Comparator;
 
 import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
 
@@ -19,8 +18,10 @@ public class MealTestData {
     public static final Meal firstAdminMeal = new Meal(ADMIN_MEAL_ID, LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Admin: Передание", 2500);
     public static final Meal secondAdminMeal = new Meal(ADMIN_MEAL_ID + 1, LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Admin: Сыр", 600);
     public static final Meal thirdAdminMeal = new Meal(ADMIN_MEAL_ID + 2, LocalDateTime.of(2020, Month.JANUARY, 30, 20, 1), "Admin: Вино", 400);
-    public static final Meal newMeal = new Meal(null, LocalDateTime.of(2020, Month.OCTOBER, 17, 12, 0), "Еда", 500);
-    public static final Meal notExist = new Meal(NOT_EXIST_MEAL_ID, LocalDateTime.of(1970, Month.JANUARY, 1, 0, 0), "Мясо единорога", 9000);
+
+    public static Meal getNew() {
+        return new Meal(null, LocalDateTime.of(2020, Month.OCTOBER, 17, 12, 0), "Еда", 500);
+    }
 
     public static Meal getUpdated() {
         Meal meal = new Meal(firstUserMeal);
@@ -30,6 +31,10 @@ public class MealTestData {
         return meal;
     }
 
+    public static Meal getNotExist() {
+        return new Meal(NOT_EXIST_MEAL_ID, LocalDateTime.of(1970, Month.JANUARY, 1, 0, 0), "Мясо единорога", 9000);
+    }
+
     public static void assertMatch(Meal actual, Meal expected) {
         Assertions.assertThat(actual)
                 .usingRecursiveComparison()
@@ -37,13 +42,8 @@ public class MealTestData {
     }
 
     public static void assertMatch(Iterable<Meal> actual, Iterable<Meal> expected) {
-        Comparator<Meal> mealComparator = Comparator.comparing(Meal::getId)
-                .thenComparing(Meal::getDateTime)
-                .thenComparing(Meal::getDescription)
-                .thenComparing(Meal::getCalories);
-
         Assertions.assertThat(actual)
-                .usingElementComparator(mealComparator)
+                .usingRecursiveFieldByFieldElementComparator()
                 .isEqualTo(expected);
     }
 }
