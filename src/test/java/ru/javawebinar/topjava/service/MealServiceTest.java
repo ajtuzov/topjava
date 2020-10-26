@@ -52,8 +52,8 @@ public class MealServiceTest {
         int newId = created.id();
         Meal newMeal = getNew();
         newMeal.setId(newId);
-        MEAL_MATCHER.assertMatch(created, newMeal);
-        MEAL_MATCHER.assertMatch(service.get(newId, USER_ID), newMeal);
+        MEAL_MATCHER_IGNORE_ID.assertMatch(created, newMeal);
+        MEAL_MATCHER_IGNORE_ID.assertMatch(service.get(newId, USER_ID), newMeal);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class MealServiceTest {
     @Test
     public void get() throws Exception {
         Meal actual = service.get(ADMIN_MEAL_ID, ADMIN_ID);
-        MEAL_MATCHER.assertMatch(actual, admin_meal1);
+        MEAL_MATCHER_IGNORE_ID.assertMatch(actual, admin_meal1);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class MealServiceTest {
     public void update() throws Exception {
         Meal updated = getUpdated();
         service.update(updated, USER_ID);
-        MEAL_MATCHER.assertMatch(service.get(MEAL1_ID, USER_ID), getUpdated());
+        MEAL_MATCHER_IGNORE_ID.assertMatch(service.get(MEAL1_ID, USER_ID), getUpdated());
     }
 
     @Test
@@ -93,12 +93,12 @@ public class MealServiceTest {
 
     @Test
     public void getAll() throws Exception {
-        MEAL_MATCHER.assertMatch(service.getAll(USER_ID), meals);
+        MEAL_MATCHER_IGNORE_ID.assertMatch(service.getAll(USER_ID), meals);
     }
 
     @Test
     public void getBetweenInclusive() throws Exception {
-        MEAL_MATCHER.assertMatch(service.getBetweenInclusive(
+        MEAL_MATCHER_IGNORE_ID.assertMatch(service.getBetweenInclusive(
                 LocalDate.of(2020, Month.JANUARY, 30),
                 LocalDate.of(2020, Month.JANUARY, 30), USER_ID),
                 meal3, meal2, meal1);
@@ -106,6 +106,6 @@ public class MealServiceTest {
 
     @Test
     public void getBetweenWithNullDates() throws Exception {
-        MEAL_MATCHER.assertMatch(service.getBetweenInclusive(null, null, USER_ID), meals);
+        MEAL_MATCHER_IGNORE_ID.assertMatch(service.getBetweenInclusive(null, null, USER_ID), meals);
     }
 }
