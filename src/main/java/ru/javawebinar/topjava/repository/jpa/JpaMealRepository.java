@@ -28,13 +28,16 @@ public class JpaMealRepository implements MealRepository {
             return entityManager.merge(meal);
         }
 
-        Meal mealForUpdate = entityManager.getReference(Meal.class, meal.getId());
-        User user = mealForUpdate.getUser();
-        if (user.getId() != userId) {
+        Meal mealForUpdate = entityManager.find(Meal.class, meal.getId());
+        Optional<User> optionalUser = Optional.ofNullable(mealForUpdate)
+                .map(Meal::getUser)
+                .filter(user -> user.getId() == userId);
+
+        if (!optionalUser.isPresent()) {
             return null;
         }
 
-        meal.setUser(user);
+        meal.setUser(optionalUser.get());
         return entityManager.merge(meal);
     }
 

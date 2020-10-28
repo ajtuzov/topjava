@@ -11,6 +11,7 @@ import static java.time.LocalDateTime.of;
 import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
 
 public class MealTestData {
+    public static TestMatcher<Meal> MEAL_MATCHER = TestMatcher.usingFieldsComparator();
     public static final TestMatcher<Meal> MEAL_MATCHER_IGNORE_ID = TestMatcher.usingFieldsComparator("user");
 
     public static final int NOT_FOUND = 10;

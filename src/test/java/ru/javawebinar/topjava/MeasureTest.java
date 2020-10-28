@@ -3,7 +3,6 @@ package ru.javawebinar.topjava;
 import org.junit.rules.Stopwatch;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,10 +11,12 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
+import static org.slf4j.LoggerFactory.getLogger;
+import static ru.javawebinar.topjava.util.Util.addRightPadding;
 
 public class MeasureTest extends Stopwatch {
 
-    private static final Logger logger = LoggerFactory.getLogger(Stopwatch.class);
+    private static final Logger logger = getLogger(Stopwatch.class);
     private static final Map<String, Long> overview = new HashMap<>();
 
 
@@ -29,8 +30,14 @@ public class MeasureTest extends Stopwatch {
 
 
     public static String getOverview() {
+        int padding = overview.keySet()
+                .stream()
+                .mapToInt(String::length)
+                .max()
+                .getAsInt();
+
         return overview.entrySet().stream()
-                .map(entry -> format("\t%s - %d ms", entry.getKey(), entry.getValue()))
+                .map(entry -> format("\t%s - %d ms", addRightPadding(entry.getKey(), padding), entry.getValue()))
                 .collect(joining(lineSeparator(), lineSeparator(), ""));
     }
 }

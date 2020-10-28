@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.Range;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -16,7 +17,8 @@ import java.time.LocalTime;
                 query = "SELECT m FROM Meal m WHERE m.user.id=:user_id AND m.dateTime >= :startDateTime AND m.dateTime < :endDateTime ORDER BY m.dateTime DESC")
 })
 @Entity
-@Table(name = "meals", uniqueConstraints = @UniqueConstraint(columnNames = "date_time", name = "meals_unique_user_datetime_idx"))
+@Table(name = "meals",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "date_time"}, name = "meals_unique_user_datetime_idx"))
 public class Meal extends AbstractBaseEntity {
 
     public static final String DELETE = "Meal.delete";
@@ -24,19 +26,21 @@ public class Meal extends AbstractBaseEntity {
     public static final String GET_BETWEEN_HALF_OPEN = "Meal.getBetweenHalfOpen";
 
     @NotNull
-    @Column(name = "date_time", nullable = false, unique = true)
+    @Column(name = "date_time", nullable = false)
     private LocalDateTime dateTime;
 
     @NotBlank
+    @Size(min = 2, max = 120)
     @Column(name = "description", nullable = false)
     private String description;
 
-    @Range(min = 0)
+    @Range(min = 10, max = 5000)
     @Column(name = "calories", nullable = false)
     private int calories;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public Meal() {
