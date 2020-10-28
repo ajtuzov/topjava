@@ -12,7 +12,6 @@ import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
 import static org.slf4j.LoggerFactory.getLogger;
-import static ru.javawebinar.topjava.util.Util.addRightPadding;
 
 public class MeasureTest extends Stopwatch {
 
@@ -30,14 +29,8 @@ public class MeasureTest extends Stopwatch {
 
 
     public static String getOverview() {
-        int padding = overview.keySet()
-                .stream()
-                .mapToInt(String::length)
-                .max()
-                .getAsInt();
-
         return overview.entrySet().stream()
-                .map(entry -> format("\t%s - %d ms", addRightPadding(entry.getKey(), padding), entry.getValue()))
+                .map(entry -> format("\t%-23s - %d ms", entry.getKey(), entry.getValue()))
                 .collect(joining(lineSeparator(), lineSeparator(), ""));
     }
 }
