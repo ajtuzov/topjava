@@ -49,8 +49,14 @@
               p:password="${database.password}"/>
     </beans>
 
-    <beans profile="jdbc">
-        <context:component-scan base-package="ru.javawebinar.**.repository.jdbc"/>
+    <beans profile="jdbcHsqldb">
+        <bean id="jdbcHsqldbMealRepository" class="ru.javawebinar.topjava.repository.jdbc.JdbcHsqldbMealRepository"/>
+    </beans>
+    <beans profile="jdbcPostgres">
+        <bean id="jdbcPostgresMealRepository" class="ru.javawebinar.topjava.repository.jdbc.JdbcPostgresMealRepository"/>
+    </beans>
+    <beans profile="jdbcHsqldb,jdbcPostgres">
+        <bean id="jdbcUserRepository" class="ru.javawebinar.topjava.repository.jdbc.JdbcUserRepository"/>
         <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
             <constructor-arg ref="dataSource"/>
         </bean>

@@ -1,22 +1,20 @@
 package ru.javawebinar.topjava.repository.jdbc;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.stereotype.Repository;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Repository
-public class JdbcMealRepository implements MealRepository {
+public abstract class BaseJdbcMealRepository<T> implements MealRepository {
 
     private static final RowMapper<Meal> ROW_MAPPER = BeanPropertyRowMapper.newInstance(Meal.class);
 
@@ -24,38 +22,41 @@ public class JdbcMealRepository implements MealRepository {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    private final SimpleJdbcInsert insertMeal;
-
-    @Autowired
-    public JdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
-        this.insertMeal = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("meals")
-                .usingGeneratedKeyColumns("id");
-
+    public BaseJdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
+
+    public abstract String[] getColumnNameStrategy();
+    public abstract T getDateStrategy(LocalDateTime localDateTime);
 
     @Override
     public Meal save(Meal meal, int userId) {
         MapSqlParameterSource map = new MapSqlParameterSource()
                 .addValue("id", meal.getId())
+                .addValue("date_time", getDateStrategy(meal.getDateTime()))
                 .addValue("description", meal.getDescription())
                 .addValue("calories", meal.getCalories())
-                .addValue("date_time", meal.getDateTime())
                 .addValue("user_id", userId);
-
         if (meal.isNew()) {
-            Number newId = insertMeal.executeAndReturnKey(map);
-            meal.setId(newId.intValue());
-        } else {
-            if (namedParameterJdbcTemplate.update("" +
-                            "UPDATE meals " +
-                            "   SET description=:description, calories=:calories, date_time=:date_time " +
-                            " WHERE id=:id AND user_id=:user_id", map) == 0) {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            int inserted = namedParameterJdbcTemplate.update("""
+                    INSERT INTO meals (date_time, description, calories, user_id)
+                    VALUES (:date_time, :description, :calories, :user_id) 
+                    """, map, keyHolder, getColumnNameStrategy());
+            if (inserted == 0) {
                 return null;
             }
+            Number key = keyHolder.getKey();
+            meal.setId(key.intValue());
+        } else if (namedParameterJdbcTemplate.update("""
+                UPDATE meals
+                SET description=:description, calories=:calories, date_time=:date_time 
+                WHERE id=:id AND user_id=:user_id
+                """, map) == 0) {
+            return null;
         }
+
         return meal;
     }
 
@@ -79,8 +80,16 @@ public class JdbcMealRepository implements MealRepository {
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
-        return jdbcTemplate.query(
-                "SELECT * FROM meals WHERE user_id=?  AND date_time >=  ? AND date_time < ? ORDER BY date_time DESC",
-                ROW_MAPPER, userId, startDateTime, endDateTime);
+        MapSqlParameterSource map = new MapSqlParameterSource()
+                .addValue("startDateTime", getDateStrategy(startDateTime))
+                .addValue("endDateTime", getDateStrategy(endDateTime))
+                .addValue("userId", userId);
+        return namedParameterJdbcTemplate.query("""
+                SELECT * 
+                FROM meals
+                WHERE user_id=:userId
+                AND date_time >= :startDateTime AND date_time < :endDateTime
+                ORDER BY date_time DESC 
+                """, map, ROW_MAPPER);
     }
 }
