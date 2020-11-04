@@ -1,10 +1,8 @@
 package ru.javawebinar.topjava.repository.datajpa;
 
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.MealRepository;
 
 import java.time.LocalDateTime;
@@ -13,7 +11,6 @@ import java.util.List;
 @Repository
 public class DataJpaMealRepository implements MealRepository {
 
-    public static final Sort DESC_SORT = Sort.by(Sort.Direction.DESC, "dateTime");
     private final CrudMealRepository crudMealRepository;
     private final CrudUserRepository crudUserRepository;
 
@@ -42,12 +39,12 @@ public class DataJpaMealRepository implements MealRepository {
 
     @Override
     public Meal get(int id, int userId) {
-        return crudMealRepository.getByIdAndUserId(id, userId);
+        return crudMealRepository.get(id, userId);
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        return crudMealRepository.getAllByUserId(DESC_SORT, userId);
+        return crudMealRepository.getAll(userId);
     }
 
     @Override
@@ -57,7 +54,7 @@ public class DataJpaMealRepository implements MealRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public User getUserByMeal(int id, int userId) {
-        return get(id, userId).getUser();
+    public Meal getWithUser(int id, int userId) {
+        return crudMealRepository.getWithUser(id, userId);
     }
 }

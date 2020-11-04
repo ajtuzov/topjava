@@ -6,8 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 
@@ -22,12 +21,16 @@ public abstract class BaseJdbcMealRepository<T> implements MealRepository {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+    private final SimpleJdbcInsert insertMeal;
+
     public BaseJdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+        this.insertMeal = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("meals")
+                .usingGeneratedKeyColumns("id");
     }
 
-    public abstract String[] getColumnNameStrategy();
     public abstract T getDateStrategy(LocalDateTime localDateTime);
 
     @Override
@@ -39,16 +42,8 @@ public abstract class BaseJdbcMealRepository<T> implements MealRepository {
                 .addValue("calories", meal.getCalories())
                 .addValue("user_id", userId);
         if (meal.isNew()) {
-            KeyHolder keyHolder = new GeneratedKeyHolder();
-            int inserted = namedParameterJdbcTemplate.update("""
-                    INSERT INTO meals (date_time, description, calories, user_id)
-                    VALUES (:date_time, :description, :calories, :user_id) 
-                    """, map, keyHolder, getColumnNameStrategy());
-            if (inserted == 0) {
-                return null;
-            }
-            Number key = keyHolder.getKey();
-            meal.setId(key.intValue());
+            Number newId = insertMeal.executeAndReturnKey(map);
+            meal.setId(newId.intValue());
         } else if (namedParameterJdbcTemplate.update("""
                 UPDATE meals
                 SET description=:description, calories=:calories, date_time=:date_time 

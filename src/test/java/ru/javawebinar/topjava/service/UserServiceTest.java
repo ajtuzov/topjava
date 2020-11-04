@@ -20,6 +20,7 @@ import static ru.javawebinar.topjava.UserTestData.admin;
 import static ru.javawebinar.topjava.UserTestData.getNew;
 import static ru.javawebinar.topjava.UserTestData.getUpdated;
 import static ru.javawebinar.topjava.UserTestData.user;
+import static ru.javawebinar.topjava.UserTestData.userWithoutMeal;
 
 public abstract class UserServiceTest extends BaseServiceTest {
 
@@ -88,6 +89,6 @@ public abstract class UserServiceTest extends BaseServiceTest {
     @Test
     public void getAll() {
         List<User> all = service.getAll();
-        USER_MATCHER.assertMatch(all, admin, user);
+        USER_MATCHER.assertMatch(all, admin, userWithoutMeal, user);
     }
 }

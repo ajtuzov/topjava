@@ -2,10 +2,9 @@ package ru.javawebinar.topjava;
 
 public class Profiles {
     public static final String
+            JDBC = "jdbc",
             JPA = "jpa",
-            DATAJPA = "datajpa",
-            JDBC_POSTGRES = "jdbcPostgres",
-            JDBC_HSQLDB = "jdbcHsqldb";
+            DATAJPA = "datajpa";
 
     public static final String REPOSITORY_IMPLEMENTATION = DATAJPA;
 
@@ -26,9 +25,5 @@ public class Profiles {
                 throw new IllegalStateException("Could not find DB driver");
             }
         }
-    }
-
-    public static String getActiveJdbcProfile() {
-        return getActiveDbProfile().equals(POSTGRES_DB) ? JDBC_POSTGRES : JDBC_HSQLDB;
     }
 }

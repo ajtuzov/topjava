@@ -3,7 +3,6 @@ package ru.javawebinar.topjava.repository.datajpa;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
 
@@ -46,7 +45,7 @@ public class DataJpaUserRepository implements UserRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Meal> getUserMeals(int id) {
-        return get(id).getMeals();
+    public User getWithMeals(int id) {
+        return crudRepository.getWithMeals(id);
     }
 }
