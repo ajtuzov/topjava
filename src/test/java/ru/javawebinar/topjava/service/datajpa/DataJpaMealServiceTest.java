@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.service.datajpa;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Stopwatch;
@@ -10,14 +11,17 @@ import org.springframework.test.context.ActiveProfiles;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.service.MealServiceTest;
+import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.javawebinar.topjava.MealTestData.MEAL1_ID;
 import static ru.javawebinar.topjava.MealTestData.MEAL_MATCHER;
 import static ru.javawebinar.topjava.MealTestData.meal1;
 import static ru.javawebinar.topjava.Profiles.DATAJPA;
+import static ru.javawebinar.topjava.UserTestData.ADMIN_ID;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
 import static ru.javawebinar.topjava.UserTestData.USER_MATCHER;
 import static ru.javawebinar.topjava.UserTestData.user;
@@ -44,6 +48,11 @@ public class DataJpaMealServiceTest extends MealServiceTest {
         User actualUser = actual.getUser();
         MEAL_MATCHER.assertMatch(actual, meal1);
         USER_MATCHER.assertMatch(actualUser, user);
+    }
+
+    @Test
+    public void getNotOwnWithUser() {
+        assertThrows(NotFoundException.class, () -> service.getWithUser(MEAL1_ID, ADMIN_ID));
     }
 
     @AfterClass
