@@ -31,7 +31,7 @@ public abstract class BaseJdbcMealRepository<T> implements MealRepository {
                 .usingGeneratedKeyColumns("id");
     }
 
-    public abstract T getDateStrategy(LocalDateTime localDateTime);
+    protected abstract T getDateStrategy(LocalDateTime localDateTime);
 
     @Override
     public Meal save(Meal meal, int userId) {

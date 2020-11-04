@@ -50,7 +50,7 @@
     </beans>
 
     <beans profile="jdbc">
-        <bean class="ru.javawebinar.topjava.repository.jdbc.JdbcUserRepository"/>
+        <context:component-scan base-package="ru.javawebinar.**.repository.jdbc"/>
 
         <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
             <constructor-arg ref="dataSource"/>
@@ -59,14 +59,6 @@
         <bean id="namedJdbcTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
             <constructor-arg ref="jdbcTemplate"/>
         </bean>
-
-        <beans profile="hsqldb">
-            <bean class="ru.javawebinar.topjava.repository.jdbc.JdbcHsqldbMealRepository"/>
-        </beans>
-
-        <beans profile="postgres">
-            <bean class="ru.javawebinar.topjava.repository.jdbc.JdbcPostgresMealRepository"/>
-        </beans>
     </beans>
 
     <beans profile="jpa,datajpa">
