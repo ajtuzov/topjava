@@ -13,14 +13,14 @@ import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 
+import static ru.javawebinar.topjava.Profiles.HSQL_DB;
 import static ru.javawebinar.topjava.Profiles.REPOSITORY_IMPLEMENTATION;
-import static ru.javawebinar.topjava.Profiles.getActiveDbProfile;
 
 public class SpringMain {
     public static void main(String[] args) {
         // java 7 automatic resource management (ARM)
         try (ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext()) {
-            appCtx.getEnvironment().setActiveProfiles(REPOSITORY_IMPLEMENTATION, getActiveDbProfile());
+            appCtx.getEnvironment().setActiveProfiles(REPOSITORY_IMPLEMENTATION, HSQL_DB);
             appCtx.setConfigLocations("spring/spring-app.xml", "spring/inmemory.xml");
             appCtx.refresh();
             System.out.println("Bean definition names: " + Arrays.toString(appCtx.getBeanDefinitionNames()));

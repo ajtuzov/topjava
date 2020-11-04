@@ -9,8 +9,10 @@ import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
+import static ru.javawebinar.topjava.Profiles.HSQL_DB;
+
 @Repository
-@Profile("hsqldb")
+@Profile(HSQL_DB)
 public class JdbcHsqldbMealRepository extends BaseJdbcMealRepository<Timestamp> {
     @Autowired
     public JdbcHsqldbMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
