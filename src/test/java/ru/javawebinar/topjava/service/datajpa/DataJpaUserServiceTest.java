@@ -4,10 +4,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 import ru.javawebinar.topjava.MealTestData;
+import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.service.AbstractUserServiceTest;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
+import java.util.List;
+
+import static java.util.stream.Collectors.*;
 import static ru.javawebinar.topjava.Profiles.DATAJPA;
 import static ru.javawebinar.topjava.UserTestData.*;
 
@@ -17,7 +21,14 @@ public class DataJpaUserServiceTest extends AbstractUserServiceTest {
     public void getWithMeals() {
         User actual = service.getWithMeals(USER_ID);
         USER_MATCHER.assertMatch(actual, user);
-        MealTestData.MEAL_MATCHER.assertMatch(user.getMeals(), MealTestData.meals);
+        MealTestData.MEAL_MATCHER.assertMatch(getMealWithoutDuplicates(actual), MealTestData.meals);
+    }
+
+    private List<Meal> getMealWithoutDuplicates(User user) {
+        return user.getMeals()
+                .stream()
+                .distinct()
+                .collect(toList());
     }
 
     @Test

@@ -1,11 +1,12 @@
 package ru.javawebinar.topjava.service;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
+import org.springframework.test.context.ActiveProfiles;
 import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
@@ -17,13 +18,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertThrows;
+import static ru.javawebinar.topjava.Profiles.JDBC;
+import static ru.javawebinar.topjava.Profiles.NO_CACHE;
 import static ru.javawebinar.topjava.UserTestData.*;
 
+@ActiveProfiles(NO_CACHE)
 public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
     @Autowired
     protected UserService service;
+
+    @Autowired
+    protected Environment environment;
 
     @Autowired
     private CacheManager cacheManager;
@@ -34,8 +42,9 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Before
     public void setUp() {
         if (!isJdbcProfile()) {
-            cacheManager.getCache("users").clear();
+            cacheManager.getCache("user").clear();
             jpaUtil.clear2ndLevelHibernateCache();
+            JpaUtil.disable2ndLevelHibernateCache();
         }
     }
 
@@ -85,7 +94,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
     @Test
     public void update() {
-        User updated = getUpdated();
+        User updated = new User(getUpdated());
         service.update(updated);
         USER_MATCHER.assertMatch(service.get(USER_ID), getUpdated());
     }
@@ -98,13 +107,14 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
     @Test
     public void createWithException() {
-        if (isJdbcProfile()) {
-            Assume.assumeFalse(isJdbcProfile());
-        }
         validateRootCause(() -> service.create(new User(null, "  ", "mail@yandex.ru", "password", Role.USER)), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "  ", "password", Role.USER)), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "  ", Role.USER)), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "password", 9, true, new Date(), Set.of())), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "password", 10001, true, new Date(), Set.of())), ConstraintViolationException.class);
+    }
+
+    private boolean isJdbcProfile() {
+        return asList(environment.getActiveProfiles()).contains(JDBC);
     }
 }

@@ -12,6 +12,8 @@ public class Profiles {
             POSTGRES_DB = "postgres",
             HSQL_DB = "hsqldb";
 
+    public static final String NO_CACHE = "nocache";
+
     //  Get DB profile depending of DB driver in classpath
     public static String getActiveDbProfile() {
         if (isClassExists("org.postgresql.Driver")) {
