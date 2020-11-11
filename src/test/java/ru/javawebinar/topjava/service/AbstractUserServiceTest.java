@@ -1,10 +1,9 @@
 package ru.javawebinar.topjava.service;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ActiveProfiles;
 import ru.javawebinar.topjava.UserTestData;
@@ -18,9 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertThrows;
-import static ru.javawebinar.topjava.Profiles.JDBC;
 import static ru.javawebinar.topjava.Profiles.NO_CACHE;
 import static ru.javawebinar.topjava.UserTestData.*;
 
@@ -31,21 +28,14 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     protected UserService service;
 
     @Autowired
-    protected Environment environment;
-
-    @Autowired
     private CacheManager cacheManager;
 
     @Autowired(required = false)
     protected JpaUtil jpaUtil;
 
-    @Before
-    public void setUp() {
-        if (!isJdbcProfile()) {
-            cacheManager.getCache("user").clear();
-            jpaUtil.clear2ndLevelHibernateCache();
-            JpaUtil.disable2ndLevelHibernateCache();
-        }
+    @BeforeClass
+    public static void setUp() {
+        JpaUtil.disable2ndLevelHibernateCache();
     }
 
     @Test
@@ -112,9 +102,5 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "  ", Role.USER)), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "password", 9, true, new Date(), Set.of())), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "password", 10001, true, new Date(), Set.of())), ConstraintViolationException.class);
-    }
-
-    private boolean isJdbcProfile() {
-        return asList(environment.getActiveProfiles()).contains(JDBC);
     }
 }
