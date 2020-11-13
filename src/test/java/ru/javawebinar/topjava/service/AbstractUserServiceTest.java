@@ -3,7 +3,6 @@ package ru.javawebinar.topjava.service;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ActiveProfiles;
 import ru.javawebinar.topjava.UserTestData;
@@ -27,12 +26,6 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Autowired
     protected UserService service;
 
-    @Autowired
-    private CacheManager cacheManager;
-
-    @Autowired(required = false)
-    protected JpaUtil jpaUtil;
-
     @BeforeClass
     public static void setUp() {
         JpaUtil.disable2ndLevelHibernateCache();
@@ -46,6 +39,34 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
         newUser.setId(newId);
         USER_MATCHER.assertMatch(created, newUser);
         USER_MATCHER.assertMatch(service.get(newId), newUser);
+    }
+
+    @Test
+    public void createWithoutRoles() {
+        User actual = service.create(getNewWithoutRoles());
+        int newId = actual.id();
+        User newUser = getNewWithoutRoles();
+        newUser.setId(newId);
+        USER_MATCHER.assertMatch(actual, newUser);
+        USER_MATCHER.assertMatch(service.get(newId), newUser);
+    }
+
+    @Test
+    public void createWithManyRoles() {
+        User actual = service.create(getNewWithManyRoles());
+        int newId = actual.id();
+        User newUser = getNewWithManyRoles();
+        newUser.setId(newId);
+        USER_MATCHER.assertMatch(actual, newUser);
+        USER_MATCHER.assertMatch(service.get(newId), newUser);
+    }
+
+    @Test
+    public void createWithManyRolesAndCompareWithAll() {
+        User newUser = service.create(getNewWithManyRoles());
+        int newId = newUser.id();
+        newUser.setId(newId);
+        USER_MATCHER.assertMatch(service.getAll(), admin, newUser, user);
     }
 
     @Test
@@ -78,15 +99,35 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
     @Test
     public void getByEmail() {
-        User user = service.getByEmail("admin@gmail.com");
-        USER_MATCHER.assertMatch(user, admin);
+        User actual = service.getByEmail("user@yandex.ru");
+        USER_MATCHER.assertMatch(actual, user);
+    }
+
+    @Test
+    public void getByEmailWithManyRoles() {
+        User actual = service.getByEmail("admin@gmail.com");
+        USER_MATCHER.assertMatch(actual, admin);
     }
 
     @Test
     public void update() {
-        User updated = new User(getUpdated());
+        User updated = getUpdated();
         service.update(updated);
         USER_MATCHER.assertMatch(service.get(USER_ID), getUpdated());
+    }
+
+    @Test
+    public void updateWithManyRoles() {
+        User updated = getUpdatedWithManyRoles();
+        service.update(updated);
+        USER_MATCHER.assertMatch(service.get(USER_ID), getUpdatedWithManyRoles());
+    }
+
+    @Test
+    public void updateWithoutRoles() {
+        User updated = getUpdatedWithoutRoles();
+        service.update(updated);
+        USER_MATCHER.assertMatch(service.get(USER_ID), getUpdatedWithoutRoles());
     }
 
     @Test

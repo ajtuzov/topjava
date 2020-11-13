@@ -1,6 +1,5 @@
 package ru.javawebinar.topjava.repository.jdbc;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,11 +8,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 
@@ -34,8 +29,6 @@ public class JdbcMealRepository implements MealRepository {
 
     private final SimpleJdbcInsert insertMeal;
 
-    private PlatformTransactionManager transactionManager;
-
     public JdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.insertMeal = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("meals")
@@ -43,11 +36,6 @@ public class JdbcMealRepository implements MealRepository {
 
         this.jdbcTemplate = jdbcTemplate;
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-    }
-
-    @Autowired
-    public void setTransactionManager(PlatformTransactionManager transactionManager) {
-        this.transactionManager = transactionManager;
     }
 
     @Override
@@ -61,8 +49,6 @@ public class JdbcMealRepository implements MealRepository {
                 .addValue("date_time", meal.getDateTime())
                 .addValue("user_id", userId);
 
-        TransactionDefinition definition = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(definition);
         if (meal.isNew()) {
             Number newId = insertMeal.executeAndReturnKey(map);
             meal.setId(newId.intValue());
@@ -74,48 +60,32 @@ public class JdbcMealRepository implements MealRepository {
                 return null;
             }
         }
-        transactionManager.commit(status);
         return meal;
     }
 
     @Override
     @Transactional
     public boolean delete(int id, int userId) {
-        TransactionDefinition definition = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(definition);
-        int update = jdbcTemplate.update("DELETE FROM meals WHERE id=? AND user_id=?", id, userId);
-        transactionManager.commit(status);
-        return update != 0;
+        return jdbcTemplate.update("DELETE FROM meals WHERE id=? AND user_id=?", id, userId) != 0;
     }
 
     @Override
     public Meal get(int id, int userId) {
-        TransactionDefinition definition = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(definition);
         List<Meal> meals = jdbcTemplate.query(
                 "SELECT * FROM meals WHERE id = ? AND user_id = ?", ROW_MAPPER, id, userId);
-        transactionManager.commit(status);
         return DataAccessUtils.singleResult(meals);
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        TransactionDefinition definition = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(definition);
-        List<Meal> query = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT * FROM meals WHERE user_id=? ORDER BY date_time DESC", ROW_MAPPER, userId);
-        transactionManager.commit(status);
-        return query;
     }
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
-        TransactionDefinition definition = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(definition);
-        List<Meal> query = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT * FROM meals WHERE user_id=?  AND date_time >=  ? AND date_time < ? ORDER BY date_time DESC",
                 ROW_MAPPER, userId, startDateTime, endDateTime);
-        transactionManager.commit(status);
-        return query;
     }
 }

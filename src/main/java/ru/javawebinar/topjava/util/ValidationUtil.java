@@ -6,12 +6,14 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import java.util.Set;
 
 import static javax.validation.Validation.buildDefaultValidatorFactory;
 
 public class ValidationUtil {
+
+    private static final Validator validator = buildDefaultValidatorFactory().getValidator();
+
     private ValidationUtil() {
     }
 
@@ -62,8 +64,6 @@ public class ValidationUtil {
     }
 
     public static <T> void validateEntity(T entity) {
-        ValidatorFactory validatorFactory = buildDefaultValidatorFactory();
-        Validator validator = validatorFactory.getValidator();
         Set<ConstraintViolation<T>> constraintViolations = validator.validate(entity);
         if (!constraintViolations.isEmpty()) {
             throw new ConstraintViolationException(constraintViolations);
