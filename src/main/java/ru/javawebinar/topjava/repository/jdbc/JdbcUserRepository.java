@@ -28,6 +28,8 @@ import static ru.javawebinar.topjava.util.ValidationUtil.validateEntity;
 @Transactional(readOnly = true)
 public class JdbcUserRepository implements UserRepository {
 
+    private final ResultSetExtractor<List<User>> extractor = new UserWithRolesExtractor();
+
     private final JdbcTemplate jdbcTemplate;
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -68,12 +70,15 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     private void insertRoles(final User user) {
-        int[] argTypes = {VARCHAR, INTEGER};
-        List<Object[]> batchArgs = user.getRoles()
-                .stream()
+        Set<Role> roles = Optional.ofNullable(user.getRoles())
+                .orElse(noneOf(Role.class));
+
+        List<Object[]> batchArgs = roles.stream()
                 .map(Role::name)
                 .map(str -> new Object[]{str, user.getId()})
                 .collect(toList());
+
+        int[] argTypes = {VARCHAR, INTEGER};
         jdbcTemplate.batchUpdate("""
                 INSERT INTO user_roles (role, user_id)
                 VALUES (?, ?)
@@ -98,7 +103,7 @@ public class JdbcUserRepository implements UserRepository {
                 FROM users
                 LEFT JOIN user_roles ur ON users.id = ur.user_id
                 WHERE users.id=?
-                """, new UserWithRolesExtractor(), id);
+                """, extractor, id);
         return DataAccessUtils.singleResult(query);
     }
 
@@ -109,7 +114,7 @@ public class JdbcUserRepository implements UserRepository {
                 FROM users 
                 LEFT JOIN user_roles ur ON users.id = ur.user_id
                 WHERE email=?
-                """, new UserWithRolesExtractor(), email);
+                """, extractor, email);
         return DataAccessUtils.singleResult(users);
     }
 
@@ -119,7 +124,7 @@ public class JdbcUserRepository implements UserRepository {
                 SELECT * 
                 FROM users
                 LEFT JOIN user_roles ur ON users.id = ur.user_id 
-                ORDER BY name, email""", new UserWithRolesExtractor());
+                ORDER BY name, email""", extractor);
     }
 
     private static class UserWithRolesExtractor implements ResultSetExtractor<List<User>> {
@@ -130,6 +135,8 @@ public class JdbcUserRepository implements UserRepository {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 User user = map.computeIfAbsent(id, integer -> new User());
+                Set<Role> roles = Optional.ofNullable(user.getRoles())
+                        .orElse(noneOf(Role.class));
                 if (user.isNew()) {
                     user.setId(id);
                     user.setName(rs.getString("name"));
@@ -138,12 +145,12 @@ public class JdbcUserRepository implements UserRepository {
                     user.setEnabled(rs.getBoolean("enabled"));
                     user.setCaloriesPerDay(rs.getInt("calories_per_day"));
                     user.setRegistered(rs.getDate("registered"));
-                    user.setRoles(noneOf(Role.class));
                 }
 
                 Optional.ofNullable(rs.getString("role"))
                         .map(Role::valueOf)
-                        .ifPresent(user::addRole);
+                        .ifPresent(roles::add);
+                user.setRoles(roles);
             }
             return new ArrayList<>(map.values());
         }

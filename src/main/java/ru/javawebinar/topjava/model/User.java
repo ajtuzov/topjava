@@ -134,18 +134,6 @@ public class User extends AbstractNamedEntity {
         this.roles = CollectionUtils.isEmpty(roles) ? EnumSet.noneOf(Role.class) : EnumSet.copyOf(roles);
     }
 
-    public boolean addRole(Role role) {
-        if (role == null) {
-            return false;
-        }
-
-        if (roles == null) {
-            roles = new HashSet<>();
-        }
-
-        return roles.add(role);
-    }
-
     public List<Meal> getMeals() {
         return meals;
     }
