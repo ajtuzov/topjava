@@ -28,7 +28,7 @@ import static ru.javawebinar.topjava.util.ValidationUtil.validateEntity;
 @Transactional(readOnly = true)
 public class JdbcUserRepository implements UserRepository {
 
-    private final ResultSetExtractor<List<User>> extractor = new UserWithRolesExtractor();
+    private final ResultSetExtractor<List<User>> USER_EXTRACTOR = new UserWithRolesExtractor();
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -70,10 +70,8 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     private void insertRoles(final User user) {
-        Set<Role> roles = Optional.ofNullable(user.getRoles())
-                .orElse(noneOf(Role.class));
-
-        List<Object[]> batchArgs = roles.stream()
+        List<Object[]> batchArgs = getRoles(user)
+                .stream()
                 .map(Role::name)
                 .map(str -> new Object[]{str, user.getId()})
                 .collect(toList());
@@ -103,7 +101,7 @@ public class JdbcUserRepository implements UserRepository {
                 FROM users
                 LEFT JOIN user_roles ur ON users.id = ur.user_id
                 WHERE users.id=?
-                """, extractor, id);
+                """, USER_EXTRACTOR, id);
         return DataAccessUtils.singleResult(query);
     }
 
@@ -114,7 +112,7 @@ public class JdbcUserRepository implements UserRepository {
                 FROM users 
                 LEFT JOIN user_roles ur ON users.id = ur.user_id
                 WHERE email=?
-                """, extractor, email);
+                """, USER_EXTRACTOR, email);
         return DataAccessUtils.singleResult(users);
     }
 
@@ -124,7 +122,7 @@ public class JdbcUserRepository implements UserRepository {
                 SELECT * 
                 FROM users
                 LEFT JOIN user_roles ur ON users.id = ur.user_id 
-                ORDER BY name, email""", extractor);
+                ORDER BY name, email""", USER_EXTRACTOR);
     }
 
     private static class UserWithRolesExtractor implements ResultSetExtractor<List<User>> {
@@ -135,8 +133,6 @@ public class JdbcUserRepository implements UserRepository {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 User user = map.computeIfAbsent(id, integer -> new User());
-                Set<Role> roles = Optional.ofNullable(user.getRoles())
-                        .orElse(noneOf(Role.class));
                 if (user.isNew()) {
                     user.setId(id);
                     user.setName(rs.getString("name"));
@@ -147,6 +143,7 @@ public class JdbcUserRepository implements UserRepository {
                     user.setRegistered(rs.getDate("registered"));
                 }
 
+                Set<Role> roles = getRoles(user);
                 Optional.ofNullable(rs.getString("role"))
                         .map(Role::valueOf)
                         .ifPresent(roles::add);
@@ -154,5 +151,10 @@ public class JdbcUserRepository implements UserRepository {
             }
             return new ArrayList<>(map.values());
         }
+    }
+
+    private static Set<Role> getRoles(final User user) {
+        return Optional.ofNullable(user.getRoles())
+                .orElse(noneOf(Role.class));
     }
 }
