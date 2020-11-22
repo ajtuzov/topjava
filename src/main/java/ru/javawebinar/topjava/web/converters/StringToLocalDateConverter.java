@@ -7,6 +7,6 @@ import java.time.LocalDate;
 public class StringToLocalDateConverter implements Converter<String, LocalDate> {
     @Override
     public LocalDate convert(String source) {
-        return LocalDate.parse(source);
+        return source.isBlank() ? null : LocalDate.parse(source);
     }
 }

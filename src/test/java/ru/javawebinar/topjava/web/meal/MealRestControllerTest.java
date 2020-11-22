@@ -8,9 +8,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javawebinar.topjava.MealTestData;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
+import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
+
+import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -19,6 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.TestUtil.readFromJson;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
+import static ru.javawebinar.topjava.UserTestData.user;
+import static ru.javawebinar.topjava.util.MealsUtil.getTos;
 
 class MealRestControllerTest extends AbstractControllerTest {
 
@@ -34,7 +40,6 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNoContent());
         assertThrows(NotFoundException.class, () -> mealService.get(MEAL1_ID, USER_ID));
     }
-
 
     @Test
     void update() throws Exception {
@@ -58,10 +63,11 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void getAll() throws Exception {
+        List<MealTo> expected = getTos(meals, user.getCaloriesPerDay());
         perform(MockMvcRequestBuilders.get(REST_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MEAL_MATCHER.contentJson(meals));
+                .andExpect(MEAL_TO_MATCHER.contentJson(expected));
     }
 
     @Test
@@ -81,17 +87,24 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void filter() throws Exception {
-        perform(MockMvcRequestBuilders.get(REST_URL + "filter?startDate=2020-01-30&endDate=2020-01-30"))
+        List<MealTo> expected = getTos(meals, user.getCaloriesPerDay());
+        expected.removeIf(mealTo -> !Objects.equals(mealTo.getId(), meal6.getId()) && !Objects.equals(mealTo.getId(), meal7.getId()));
+        perform(MockMvcRequestBuilders.get(REST_URL + "filter")
+                .param("startDate", "2020-01-31")
+                .param("endDate", "2020-01-31")
+                .param("startTime", "12:00:00"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MEAL_MATCHER.contentJson(meal3, meal2, meal1));
+                .andExpect(MEAL_TO_MATCHER.contentJson(expected));
     }
 
     @Test
     void filterWithNullDates() throws Exception {
-        perform(MockMvcRequestBuilders.get(REST_URL + "filter"))
+        List<MealTo> expected = getTos(meals, user.getCaloriesPerDay());
+        perform(MockMvcRequestBuilders.get(REST_URL + "filter")
+                .param("startDate", ""))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MEAL_MATCHER.contentJson(meals));
+                .andExpect(MEAL_TO_MATCHER.contentJson(expected));
     }
 }
