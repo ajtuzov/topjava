@@ -4,9 +4,11 @@ import org.springframework.core.convert.converter.Converter;
 
 import java.time.LocalTime;
 
+import static ru.javawebinar.topjava.util.DateTimeUtil.parseLocalTime;
+
 public class StringToLocalTimeConverter implements Converter<String, LocalTime> {
     @Override
     public LocalTime convert(String source) {
-        return source.isBlank() ? null : LocalTime.parse(source);
+        return parseLocalTime(source);
     }
 }
