@@ -24,8 +24,6 @@ import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.TestUtil.readFromJson;
 import static ru.javawebinar.topjava.TestUtil.readListFromJsonMvcResult;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
-import static ru.javawebinar.topjava.UserTestData.user;
-import static ru.javawebinar.topjava.util.MealsUtil.getTos;
 
 class MealRestControllerTest extends AbstractControllerTest {
 
@@ -64,14 +62,13 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void getAll() throws Exception {
-        List<MealTo> expected = getTos(meals, user.getCaloriesPerDay());
         MvcResult mvcResult = perform(MockMvcRequestBuilders.get(REST_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         List<MealTo> actual = readListFromJsonMvcResult(mvcResult, MealTo.class);
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual).isEqualTo(mealTos);
     }
 
     @Test
@@ -100,12 +97,11 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andReturn();
 
         List<MealTo> actual = readListFromJsonMvcResult(mvcResult, MealTo.class);
-        assertThat(actual).isEqualTo(mealTos);
+        assertThat(actual).isEqualTo(filteredMealTos);
     }
 
     @Test
     void filterWithNullDates() throws Exception {
-        List<MealTo> expected = getTos(meals, user.getCaloriesPerDay());
         MvcResult mvcResult = perform(MockMvcRequestBuilders.get(REST_URL + "filter")
                 .param("startDate", ""))
                 .andExpect(status().isOk())
@@ -113,6 +109,6 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andReturn();
 
         List<MealTo> actual = readListFromJsonMvcResult(mvcResult, MealTo.class);
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual).isEqualTo(mealTos);
     }
 }

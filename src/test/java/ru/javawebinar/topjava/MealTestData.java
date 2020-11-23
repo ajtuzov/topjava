@@ -2,12 +2,14 @@ package ru.javawebinar.topjava;
 
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
+import ru.javawebinar.topjava.util.MealsUtil;
 
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static java.time.LocalDateTime.of;
+import static ru.javawebinar.topjava.UserTestData.*;
 import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
 
 public class MealTestData {
@@ -32,7 +34,8 @@ public class MealTestData {
     public static final MealTo mealTo1 = new MealTo(meal7.getId(), meal7.getDateTime(), meal7.getDescription(), meal7.getCalories(), true);
     public static final MealTo mealTo2 = new MealTo(meal6.getId(), meal6.getDateTime(), meal6.getDescription(), meal6.getCalories(), true);
 
-    public static final List<MealTo> mealTos = List.of(mealTo1, mealTo2);
+    public static final List<MealTo> filteredMealTos = List.of(mealTo1, mealTo2);
+    public static final List<MealTo> mealTos = MealsUtil.getTos(meals, user.getCaloriesPerDay());
 
     public static Meal getNew() {
         return new Meal(null, of(2020, Month.FEBRUARY, 1, 18, 0), "Созданный ужин", 300);
