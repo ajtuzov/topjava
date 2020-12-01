@@ -16,20 +16,20 @@
         <form id="filter">
             <div class="form-row">
                 <div class="form-group col-md-3">
-                    <label for="startDateInput"><spring:message code="meal.startDate"/>:</label>
-                    <input class="form-control" id="startDateInput" type="date" name="startDate" value="${param.startDate}">
+                    <label for="startDate"><spring:message code="meal.startDate"/>:</label>
+                    <input class="form-control" id="startDate" type="date" name="startDate" value="${param.startDate}">
                 </div>
                 <div class="form-group col-md-3">
-                    <label for="endDateInput"><spring:message code="meal.endDate"/>:</label>
-                    <input class="form-control" id="endDateInput" type="date" name="endDate" value="${param.startDate}">
+                    <label for="endDate"><spring:message code="meal.endDate"/>:</label>
+                    <input class="form-control" id="endDate" type="date" name="endDate" value="${param.endDate}">
                 </div>
                 <div class="form-group col-md-3">
-                    <label for="startTimeInput"><spring:message code="meal.startTime"/>:</label>
-                    <input class="form-control" id="startTimeInput" type="time" name="startTime" value="${param.startDate}">
+                    <label for="startTime"><spring:message code="meal.startTime"/>:</label>
+                    <input class="form-control" id="startTime" type="time" name="startTime" value="${param.startTime}">
                 </div>
                 <div class="form-group col-md-3">
-                    <label for="endTimeInput"><spring:message code="meal.endTime"/>:</label>
-                    <input class="form-control" id="endTimeInput" type="time" name="endTime" value="${param.startDate}">
+                    <label for="endTime"><spring:message code="meal.endTime"/>:</label>
+                    <input class="form-control" id="endTime" type="time" name="endTime" value="${param.endTime}">
                 </div>
             </div>
             <button class="btn btn-primary">
@@ -59,12 +59,12 @@
             </thead>
             <c:forEach items="${meals}" var="meal">
                 <jsp:useBean id="meal" type="ru.javawebinar.topjava.to.MealTo"/>
-                <tr data-mealExcess="${meal.excess}">
+                <tr id="${meal.id}" data-mealExcess="${meal.excess}">
                     <td>${fn:formatDateTime(meal.dateTime)}</td>
                     <td>${meal.description}</td>
                     <td>${meal.calories}</td>
                     <td><a><span class="fa fa-pencil"></span></a></td>
-                    <td><a class="delete" id="${meal.id}"><span class="fa fa-remove"></span></a></td>
+                    <td><a class="delete"><span class="fa fa-remove"></span></a></td>
                 </tr>
             </c:forEach>
         </table>

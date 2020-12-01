@@ -1,6 +1,6 @@
 var ctx;
 
-$(() => {
+$(function () {
     ctx = {
         ajaxUrl: "ui/meals/",
         datatableApi: $("#datatable").DataTable({
@@ -28,7 +28,7 @@ $(() => {
             "order": [
                 [
                     0,
-                    "asc"
+                    "desc"
                 ]
             ]
         })
